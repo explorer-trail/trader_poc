@@ -72,19 +72,27 @@ defmodule TraderPoc.Trading do
   """
   def create_trade(attrs \\ %{}, seller_id) do
     # Get or create buyer
-    {:ok, buyer} = Accounts.get_or_create_user(attrs["buyer_name"] || attrs[:buyer_name])
+    buyer_name = attrs["buyer_name"] || attrs[:buyer_name]
+    {:ok, buyer} = Accounts.get_or_create_user(buyer_name)
 
     # Generate unique invitation code
     invitation_code = generate_invitation_code()
 
-    # Prepare trade attributes
-    trade_attrs =
-      attrs
-      |> Map.put(:seller_id, seller_id)
-      |> Map.put(:buyer_id, buyer.id)
-      |> Map.put(:invitation_code, invitation_code)
-      |> Map.put(:initial_price, attrs["price"] || attrs[:price])
-      |> Map.put(:current_price, attrs["price"] || attrs[:price])
+    # Get price from attrs
+    price = attrs["price"] || attrs[:price]
+
+    # Prepare trade attributes with string keys
+    trade_attrs = %{
+      "title" => attrs["title"] || attrs[:title],
+      "description" => attrs["description"] || attrs[:description],
+      "quantity" => attrs["quantity"] || attrs[:quantity],
+      "buyer_name" => buyer_name,
+      "seller_id" => seller_id,
+      "buyer_id" => buyer.id,
+      "invitation_code" => invitation_code,
+      "initial_price" => price,
+      "current_price" => price
+    }
 
     # Create trade in a transaction
     Repo.transaction(fn ->
