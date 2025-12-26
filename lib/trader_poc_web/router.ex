@@ -17,7 +17,20 @@ defmodule TraderPocWeb.Router do
   scope "/", TraderPocWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    # Public routes
+    live "/", HomeLive, :index
+
+    # Session management
+    post "/session", SessionController, :create
+    delete "/session", SessionController, :delete
+
+    # Authenticated routes
+    live_session :require_authenticated_user,
+      on_mount: [{TraderPocWeb.UserAuth, :require_authenticated_user}] do
+      live "/trades", TradeListLive, :index
+      live "/trades/new", TradeFormLive, :new
+      live "/room/:invitation_code", TradeRoomLive, :show
+    end
   end
 
   # Other scopes may use custom stacks.

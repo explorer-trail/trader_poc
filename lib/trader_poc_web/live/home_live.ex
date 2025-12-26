@@ -14,23 +14,6 @@ defmodule TraderPocWeb.HomeLive do
   end
 
   @impl true
-  def handle_event("login", %{"name" => name}, socket) do
-    case Accounts.get_or_create_user(String.trim(name)) do
-      {:ok, user} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Welcome, #{user.name}!")
-         |> push_navigate(to: ~p"/trades")}
-
-      {:error, _changeset} ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "Invalid name. Please try again.")
-         |> assign(errors: ["Name is required"])}
-    end
-  end
-
-  @impl true
   def render(assigns) do
     ~H"""
     <div class="min-h-screen flex items-center justify-center bg-gray-100">
@@ -38,7 +21,8 @@ defmodule TraderPocWeb.HomeLive do
         <h1 class="text-3xl font-bold text-gray-900 mb-2">Trading POC</h1>
         <p class="text-gray-600 mb-8">Real-time trade negotiation platform</p>
 
-        <.form for={%{}} phx-submit="login" class="space-y-4">
+        <form action="/session" method="post" class="space-y-4">
+          <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
           <div>
             <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
               Enter your name to continue
@@ -61,7 +45,7 @@ defmodule TraderPocWeb.HomeLive do
           >
             Get Started
           </button>
-        </.form>
+        </form>
 
         <div class="mt-6 text-center text-sm text-gray-500">
           <p>A proof of concept for real-time trading negotiations</p>
