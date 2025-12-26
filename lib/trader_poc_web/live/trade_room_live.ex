@@ -310,6 +310,42 @@ defmodule TraderPocWeb.TradeRoomLive do
         <% end %>
       </div>
 
+      <!-- Action Timeline -->
+      <%= if length(@actions) > 0 do %>
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <h2 class="text-xl font-semibold mb-4">Activity Timeline</h2>
+          <div class="space-y-3 max-h-64 overflow-y-auto">
+            <%= for action <- Enum.take(@actions, 10) do %>
+              <div class={[
+                "border-l-4 pl-4 py-2",
+                action_border_color(action.action_type)
+              ]}>
+                <div class="flex justify-between items-start">
+                  <div>
+                    <p class="font-semibold text-gray-900">
+                      <%= action.user.name %> <%= action_description(action.action_type) %>
+                    </p>
+                    <%= if action.action_type == "amendment_requested" && action.details["reason"] do %>
+                      <p class="text-sm text-gray-700 mt-1 bg-yellow-50 p-2 rounded">
+                        📝 <strong>Requested changes:</strong> <%= action.details["reason"] %>
+                      </p>
+                    <% end %>
+                    <%= if action.action_type == "amended" && action.details["version"] do %>
+                      <p class="text-sm text-gray-600 mt-1">
+                        Updated to version <%= action.details["version"] %>
+                      </p>
+                    <% end %>
+                  </div>
+                  <span class="text-xs text-gray-500">
+                    <%= Calendar.strftime(action.inserted_at, "%I:%M %p") %>
+                  </span>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
       <div class="grid grid-cols-2 gap-6">
         <!-- Messages -->
         <div class="bg-white rounded-lg shadow-lg p-6">
@@ -510,4 +546,22 @@ defmodule TraderPocWeb.TradeRoomLive do
   defp format_status("in_negotiation"), do: "In Negotiation"
   defp format_status("accepted"), do: "Accepted"
   defp format_status("rejected"), do: "Rejected"
+
+  defp action_border_color("created"), do: "border-gray-400"
+  defp action_border_color("joined"), do: "border-blue-400"
+  defp action_border_color("amended"), do: "border-purple-400"
+  defp action_border_color("accepted"), do: "border-green-400"
+  defp action_border_color("rejected"), do: "border-red-400"
+  defp action_border_color("amendment_requested"), do: "border-yellow-400"
+  defp action_border_color("message_sent"), do: "border-gray-300"
+  defp action_border_color(_), do: "border-gray-400"
+
+  defp action_description("created"), do: "created the trade"
+  defp action_description("joined"), do: "joined the negotiation"
+  defp action_description("amended"), do: "amended the deal"
+  defp action_description("accepted"), do: "accepted the deal ✓"
+  defp action_description("rejected"), do: "rejected the deal"
+  defp action_description("amendment_requested"), do: "requested an amendment"
+  defp action_description("message_sent"), do: "sent a message"
+  defp action_description(_), do: "performed an action"
 end
