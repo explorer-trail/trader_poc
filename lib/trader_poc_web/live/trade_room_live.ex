@@ -200,14 +200,73 @@ defmodule TraderPocWeb.TradeRoomLive do
   end
 
   @impl true
-  def handle_info({:trade_updated, _update}, socket) do
-    # Reload trade and related data
-    trade = Trading.get_trade(socket.assigns.trade.id)
-    messages = Trading.list_messages(trade.id)
-    versions = Trading.list_versions(trade.id)
-    actions = Trading.list_actions(trade.id)
+  def handle_info({:trade_updated, update_type}, socket) do
+    trade_id = socket.assigns.trade.id
 
-    {:noreply, assign(socket, trade: trade, messages: messages, versions: versions, actions: actions)}
+    case update_type do
+      :message_sent ->
+        # Only reload messages and actions
+        messages = Trading.list_messages(trade_id)
+        actions = Trading.list_actions(trade_id)
+        {:noreply, assign(socket, messages: messages, actions: actions)}
+
+      :trade_amended ->
+        # Reload trade, versions, and actions (not messages)
+        trade = Trading.get_trade(trade_id)
+        versions = Trading.list_versions(trade_id)
+        actions = Trading.list_actions(trade_id)
+
+        socket =
+          socket
+          |> assign(trade: trade, versions: versions, actions: actions)
+          |> put_flash(:info, "The seller has amended the deal")
+
+        {:noreply, socket}
+
+      :amendment_requested ->
+        # Reload actions to show the request
+        actions = Trading.list_actions(trade_id)
+
+        socket =
+          socket
+          |> assign(actions: actions)
+          |> put_flash(:info, "The buyer has requested an amendment")
+
+        {:noreply, socket}
+
+      :trade_accepted ->
+        # Reload trade and actions
+        trade = Trading.get_trade(trade_id)
+        actions = Trading.list_actions(trade_id)
+
+        socket =
+          socket
+          |> assign(trade: trade, actions: actions)
+          |> put_flash(:success, "The deal has been accepted!")
+
+        {:noreply, socket}
+
+      :trade_rejected ->
+        # Reload trade and actions
+        trade = Trading.get_trade(trade_id)
+        actions = Trading.list_actions(trade_id)
+
+        socket =
+          socket
+          |> assign(trade: trade, actions: actions)
+          |> put_flash(:error, "The deal has been rejected")
+
+        {:noreply, socket}
+
+      _ ->
+        # Fallback: reload everything
+        trade = Trading.get_trade(trade_id)
+        messages = Trading.list_messages(trade_id)
+        versions = Trading.list_versions(trade_id)
+        actions = Trading.list_actions(trade_id)
+
+        {:noreply, assign(socket, trade: trade, messages: messages, versions: versions, actions: actions)}
+    end
   end
 
   defp broadcast_update(trade_id, update_type) do
