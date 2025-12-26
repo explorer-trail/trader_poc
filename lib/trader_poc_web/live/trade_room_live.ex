@@ -3,6 +3,7 @@ defmodule TraderPocWeb.TradeRoomLive do
 
   alias TraderPoc.Trading
   alias Phoenix.PubSub
+  alias TraderPocWeb.Presence
 
   @impl true
   def mount(%{"invitation_code" => code}, _session, socket) do
@@ -41,15 +42,26 @@ defmodule TraderPocWeb.TradeRoomLive do
     end
   end
 
-  defp init_trade_room(socket, trade, _user, role) do
+  defp init_trade_room(socket, trade, user, role) do
     # Subscribe to PubSub for real-time updates
     topic = "trade:#{trade.id}"
     PubSub.subscribe(TraderPoc.PubSub, topic)
+
+    # Track user presence
+    {:ok, _} =
+      Presence.track(self(), topic, user.id, %{
+        name: user.name,
+        role: role,
+        online_at: System.system_time(:second)
+      })
 
     # Load all related data
     messages = Trading.list_messages(trade.id)
     versions = Trading.list_versions(trade.id)
     actions = Trading.list_actions(trade.id)
+
+    # Get current presences
+    presences = Presence.list(topic)
 
     {:ok,
      assign(socket,
@@ -58,6 +70,8 @@ defmodule TraderPocWeb.TradeRoomLive do
        messages: messages,
        versions: versions,
        actions: actions,
+       presences: presences,
+       typing_user: nil,
        message_input: "",
        show_amend_modal: false,
        show_accept_modal: false,
@@ -75,8 +89,9 @@ defmodule TraderPocWeb.TradeRoomLive do
 
       case Trading.create_message(trade, user.id, content) do
         {:ok, _message} ->
-          # Broadcast update
+          # Broadcast update and stop typing indicator
           broadcast_update(trade.id, :message_sent)
+          broadcast_typing_stopped(trade.id)
 
           {:noreply, assign(socket, message_input: "")}
 
@@ -86,6 +101,25 @@ defmodule TraderPocWeb.TradeRoomLive do
     else
       {:noreply, socket}
     end
+  end
+
+  @impl true
+  def handle_event("typing", _params, socket) do
+    # User is typing - broadcast to other party
+    user_id = socket.assigns.current_user.id
+    trade_id = socket.assigns.trade.id
+
+    PubSub.broadcast(TraderPoc.PubSub, "trade:#{trade_id}", {:typing, user_id})
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("stop_typing", _params, socket) do
+    # User stopped typing
+    broadcast_typing_stopped(socket.assigns.trade.id)
+
+    {:noreply, socket}
   end
 
   @impl true
@@ -269,8 +303,41 @@ defmodule TraderPocWeb.TradeRoomLive do
     end
   end
 
+  @impl true
+  def handle_info(%Phoenix.Socket.Broadcast{event: "presence_diff", payload: _diff}, socket) do
+    # Update presences when users join or leave
+    topic = "trade:#{socket.assigns.trade.id}"
+    presences = Presence.list(topic)
+
+    # Check if typing user left
+    typing_user =
+      if socket.assigns.typing_user && !Map.has_key?(presences, socket.assigns.typing_user) do
+        nil
+      else
+        socket.assigns.typing_user
+      end
+
+    {:noreply, assign(socket, presences: presences, typing_user: typing_user)}
+  end
+
+  @impl true
+  def handle_info({:typing, user_id}, socket) do
+    # Someone started typing
+    {:noreply, assign(socket, typing_user: user_id)}
+  end
+
+  @impl true
+  def handle_info(:stop_typing, socket) do
+    # Typing indicator timeout
+    {:noreply, assign(socket, typing_user: nil)}
+  end
+
   defp broadcast_update(trade_id, update_type) do
     PubSub.broadcast(TraderPoc.PubSub, "trade:#{trade_id}", {:trade_updated, update_type})
+  end
+
+  defp broadcast_typing_stopped(trade_id) do
+    PubSub.broadcast(TraderPoc.PubSub, "trade:#{trade_id}", :stop_typing)
   end
 
   @impl true
@@ -306,9 +373,19 @@ defmodule TraderPocWeb.TradeRoomLive do
             </span>
           </div>
           <div class="text-right">
-            <p class="text-sm text-gray-500">
+            <p class="text-sm text-gray-500 mb-2">
               You are the <span class="font-semibold"><%= @role %></span>
             </p>
+            <div class="text-sm">
+              <div class="font-semibold text-gray-700 mb-1">Participants:</div>
+              <%= for {user_id, %{metas: [meta | _]}} <- @presences do %>
+                <div class="flex items-center justify-end space-x-2">
+                  <span class="text-green-500">●</span>
+                  <span class="text-gray-900"><%= meta.name %></span>
+                  <span class="text-gray-500">(<%= meta.role %>)</span>
+                </div>
+              <% end %>
+            </div>
           </div>
         </div>
 
@@ -422,6 +499,12 @@ defmodule TraderPocWeb.TradeRoomLive do
                 </p>
               </div>
             <% end %>
+
+            <%= if @typing_user && @typing_user != @current_user.id do %>
+              <div class="p-2 bg-yellow-50 rounded text-sm text-gray-700 italic">
+                <%= get_typing_user_name(@presences, @typing_user) %> is typing...
+              </div>
+            <% end %>
           </div>
 
           <.form for={%{}} phx-submit="send_message" class="flex space-x-2">
@@ -430,6 +513,9 @@ defmodule TraderPocWeb.TradeRoomLive do
               name="content"
               value={@message_input}
               placeholder="Type a message..."
+              phx-keyup="typing"
+              phx-debounce="500"
+              phx-blur="stop_typing"
               class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
             />
             <button
@@ -623,4 +709,11 @@ defmodule TraderPocWeb.TradeRoomLive do
   defp action_description("amendment_requested"), do: "requested an amendment"
   defp action_description("message_sent"), do: "sent a message"
   defp action_description(_), do: "performed an action"
+
+  defp get_typing_user_name(presences, user_id) do
+    case Map.get(presences, user_id) do
+      %{metas: [meta | _]} -> meta.name
+      _ -> "Someone"
+    end
+  end
 end

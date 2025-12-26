@@ -12,6 +12,7 @@ defmodule TraderPoc.Application do
       TraderPoc.Repo,
       {DNSCluster, query: Application.get_env(:trader_poc, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: TraderPoc.PubSub},
+      TraderPocWeb.Presence,
       # Start a worker by calling: TraderPoc.Worker.start_link(arg)
       # {TraderPoc.Worker, arg},
       # Start to serve requests, typically the last entry
