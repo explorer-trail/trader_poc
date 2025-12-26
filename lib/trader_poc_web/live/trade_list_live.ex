@@ -55,15 +55,15 @@ defmodule TraderPocWeb.TradeListLive do
                   <div class="grid grid-cols-3 gap-4 mb-4">
                     <div>
                       <span class="text-sm text-gray-500">Price</span>
-                      <p class="text-lg font-semibold">$<%= trade.current_price %></p>
+                      <p class="text-lg font-semibold text-gray-900">$<%= trade.current_price %></p>
                     </div>
                     <div>
                       <span class="text-sm text-gray-500">Quantity</span>
-                      <p class="text-lg font-semibold"><%= trade.quantity %></p>
+                      <p class="text-lg font-semibold text-gray-900"><%= trade.quantity %></p>
                     </div>
                     <div>
                       <span class="text-sm text-gray-500">Buyer</span>
-                      <p class="text-lg font-semibold"><%= trade.buyer_name %></p>
+                      <p class="text-lg font-semibold text-gray-900"><%= trade.buyer_name %></p>
                     </div>
                   </div>
 
@@ -76,7 +76,7 @@ defmodule TraderPocWeb.TradeListLive do
                     </span>
 
                     <div class="flex items-center space-x-2">
-                      <code class="bg-gray-100 px-3 py-1 rounded text-sm font-mono">
+                      <code class="bg-gray-100 px-3 py-1 rounded text-sm font-mono text-gray-900">
                         <%= trade.invitation_code %>
                       </code>
                       <button
