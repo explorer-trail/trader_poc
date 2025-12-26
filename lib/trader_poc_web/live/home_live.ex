@@ -35,7 +35,7 @@ defmodule TraderPocWeb.HomeLive do
               placeholder="Your name"
               required
               autofocus
-              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
             />
           </div>
 

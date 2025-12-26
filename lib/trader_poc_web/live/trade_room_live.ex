@@ -335,7 +335,7 @@ defmodule TraderPocWeb.TradeRoomLive do
               name="content"
               value={@message_input}
               placeholder="Type a message..."
-              class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
             />
             <button
               type="submit"
@@ -381,7 +381,7 @@ defmodule TraderPocWeb.TradeRoomLive do
                   value={@amend_form["price"]}
                   step="0.01"
                   required
-                  class="w-full px-4 py-2 border border-gray-300 rounded-md"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 bg-white"
                 />
               </div>
               <div>
@@ -391,7 +391,7 @@ defmodule TraderPocWeb.TradeRoomLive do
                   name="amend[quantity]"
                   value={@amend_form["quantity"]}
                   required
-                  class="w-full px-4 py-2 border border-gray-300 rounded-md"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 bg-white"
                 />
               </div>
               <div>
@@ -399,7 +399,7 @@ defmodule TraderPocWeb.TradeRoomLive do
                 <textarea
                   name="amend[description]"
                   rows="3"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-md"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 bg-white"
                 ><%= @amend_form["description"] %></textarea>
               </div>
               <div>
@@ -408,7 +408,7 @@ defmodule TraderPocWeb.TradeRoomLive do
                   type="text"
                   name="amend[change_reason]"
                   placeholder="Optional"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-md"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 bg-white"
                 />
               </div>
               <div class="flex justify-end space-x-3">
@@ -475,7 +475,7 @@ defmodule TraderPocWeb.TradeRoomLive do
                   rows="4"
                   required
                   placeholder="Describe the changes you'd like..."
-                  class="w-full px-4 py-2 border border-gray-300 rounded-md"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 bg-white"
                 ><%= @amendment_request_reason %></textarea>
               </div>
               <div class="flex justify-end space-x-3">

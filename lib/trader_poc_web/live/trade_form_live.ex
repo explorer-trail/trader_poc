@@ -62,7 +62,7 @@ defmodule TraderPocWeb.TradeFormLive do
               value={@form[:title].value}
               placeholder="e.g., iPhone 14 Pro"
               required
-              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
             />
           </div>
 
@@ -75,7 +75,7 @@ defmodule TraderPocWeb.TradeFormLive do
               id="description"
               rows="3"
               placeholder="Describe the item or service..."
-              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
             ><%= @form[:description].value %></textarea>
           </div>
 
@@ -93,7 +93,7 @@ defmodule TraderPocWeb.TradeFormLive do
                 step="0.01"
                 min="0"
                 required
-                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
               />
             </div>
 
@@ -109,7 +109,7 @@ defmodule TraderPocWeb.TradeFormLive do
                 placeholder="1"
                 min="1"
                 required
-                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
               />
             </div>
           </div>
@@ -125,7 +125,7 @@ defmodule TraderPocWeb.TradeFormLive do
               value={@form[:buyer_name].value}
               placeholder="Enter the buyer's name"
               required
-              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
             />
             <p class="mt-1 text-sm text-gray-500">
               Only this person will be able to join the negotiation
