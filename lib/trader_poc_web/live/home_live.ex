@@ -22,7 +22,7 @@ defmodule TraderPocWeb.HomeLive do
         <p class="text-gray-600 mb-8">Real-time trade negotiation platform</p>
 
         <form action="/session" method="post" class="space-y-4">
-          <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
+          <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
           <div>
             <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
               Enter your name to continue

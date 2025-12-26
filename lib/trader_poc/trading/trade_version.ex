@@ -8,12 +8,11 @@ defmodule TraderPoc.Trading.TradeVersion do
     field :quantity, :integer
     field :description, :string
     field :change_reason, :string
-    field :inserted_at, :utc_datetime
 
     belongs_to :trade, TraderPoc.Trading.Trade
     belongs_to :changed_by, TraderPoc.Accounts.User
 
-    timestamps(type: :utc_datetime, updated_at: false)
+    field :inserted_at, :utc_datetime
   end
 
   @doc false

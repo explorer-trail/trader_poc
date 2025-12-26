@@ -12,7 +12,7 @@ defmodule TraderPocWeb.TradeListLive do
   end
 
   @impl true
-  def handle_event("copy_link", %{"code" => code}, socket) do
+  def handle_event("copy_link", %{"code" => _code}, socket) do
     {:noreply, put_flash(socket, :info, "Invitation link copied to clipboard!")}
   end
 

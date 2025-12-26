@@ -5,12 +5,11 @@ defmodule TraderPoc.Trading.TradeAction do
   schema "trade_actions" do
     field :action_type, :string
     field :details, :map
-    field :inserted_at, :utc_datetime
 
     belongs_to :trade, TraderPoc.Trading.Trade
     belongs_to :user, TraderPoc.Accounts.User
 
-    timestamps(type: :utc_datetime, updated_at: false)
+    field :inserted_at, :utc_datetime
   end
 
   @valid_action_types ~w(created invited joined amended accepted rejected amendment_requested message_sent)

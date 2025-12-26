@@ -4,12 +4,11 @@ defmodule TraderPoc.Trading.Message do
 
   schema "messages" do
     field :content, :string
-    field :inserted_at, :utc_datetime
 
     belongs_to :trade, TraderPoc.Trading.Trade
     belongs_to :user, TraderPoc.Accounts.User
 
-    timestamps(type: :utc_datetime, updated_at: false)
+    field :inserted_at, :utc_datetime
   end
 
   @doc false

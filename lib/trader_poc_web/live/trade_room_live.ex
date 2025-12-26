@@ -41,7 +41,7 @@ defmodule TraderPocWeb.TradeRoomLive do
     end
   end
 
-  defp init_trade_room(socket, trade, user, role) do
+  defp init_trade_room(socket, trade, _user, role) do
     # Subscribe to PubSub for real-time updates
     topic = "trade:#{trade.id}"
     PubSub.subscribe(TraderPoc.PubSub, topic)
