@@ -2,8 +2,11 @@ defmodule TraderPocWeb.TradeRoomLive do
   use TraderPocWeb, :live_view
 
   alias TraderPoc.Trading
+  alias TraderPoc.ErrorTracker
   alias Phoenix.PubSub
   alias TraderPocWeb.Presence
+
+  require Logger
 
   @impl true
   def mount(%{"invitation_code" => code}, _session, socket) do
@@ -43,42 +46,66 @@ defmodule TraderPocWeb.TradeRoomLive do
   end
 
   defp init_trade_room(socket, trade, user, role) do
-    # Subscribe to PubSub for real-time updates
-    topic = "trade:#{trade.id}"
-    PubSub.subscribe(TraderPoc.PubSub, topic)
+    # Add metadata to logger for debugging
+    Logger.metadata(
+      trade_id: trade.id,
+      trade_code: trade.invitation_code,
+      user_id: user.id,
+      role: role
+    )
 
-    # Track user presence
-    {:ok, _} =
-      Presence.track(self(), topic, user.id, %{
-        name: user.name,
-        role: role,
-        online_at: System.system_time(:second)
-      })
+    try do
+      # Subscribe to PubSub for real-time updates
+      topic = "trade:#{trade.id}"
+      PubSub.subscribe(TraderPoc.PubSub, topic)
 
-    # Load all related data
-    messages = Trading.list_messages(trade.id)
-    versions = Trading.list_versions(trade.id)
-    actions = Trading.list_actions(trade.id)
+      # Track user presence
+      {:ok, _} =
+        Presence.track(self(), topic, user.id, %{
+          name: user.name,
+          role: role,
+          online_at: System.system_time(:second)
+        })
 
-    # Get current presences
-    presences = Presence.list(topic)
+      # Load all related data
+      messages = Trading.list_messages(trade.id)
+      versions = Trading.list_versions(trade.id)
+      actions = Trading.list_actions(trade.id)
 
-    {:ok,
-     assign(socket,
-       trade: trade,
-       role: role,
-       messages: messages,
-       versions: versions,
-       actions: actions,
-       presences: presences,
-       typing_user: nil,
-       message_input: "",
-       show_amend_modal: false,
-       show_accept_modal: false,
-       show_amendment_request_modal: false,
-       amend_form: %{},
-       amendment_request_reason: ""
-     )}
+      # Get current presences
+      presences = Presence.list(topic)
+
+      Logger.info("Trade room initialized successfully")
+
+      {:ok,
+       assign(socket,
+         trade: trade,
+         role: role,
+         messages: messages,
+         versions: versions,
+         actions: actions,
+         presences: presences,
+         typing_user: nil,
+         message_input: "",
+         show_amend_modal: false,
+         show_accept_modal: false,
+         show_amendment_request_modal: false,
+         amend_form: %{},
+         amendment_request_reason: ""
+       )}
+    rescue
+      error ->
+        # Track the error for developers
+        ErrorTracker.track_liveview_error(error, __STACKTRACE__, socket)
+
+        # Show user-friendly message
+        friendly_message = ErrorTracker.user_friendly_message(error)
+
+        {:ok,
+         socket
+         |> put_flash(:error, friendly_message)
+         |> push_navigate(to: ~p"/trades")}
+    end
   end
 
   @impl true
@@ -87,16 +114,36 @@ defmodule TraderPocWeb.TradeRoomLive do
       trade = socket.assigns.trade
       user = socket.assigns.current_user
 
-      case Trading.create_message(trade, user.id, content) do
-        {:ok, _message} ->
-          # Broadcast update and stop typing indicator
-          broadcast_update(trade.id, :message_sent)
-          broadcast_typing_stopped(trade.id)
+      try do
+        case Trading.create_message(trade, user.id, content) do
+          {:ok, _message} ->
+            # Broadcast update and stop typing indicator
+            broadcast_update(trade.id, :message_sent)
+            broadcast_typing_stopped(trade.id)
 
-          {:noreply, assign(socket, message_input: "")}
+            Logger.info("Message sent successfully",
+              trade_id: trade.id,
+              user_id: user.id,
+              content_length: String.length(content)
+            )
 
-        {:error, _} ->
-          {:noreply, put_flash(socket, :error, "Failed to send message")}
+            {:noreply, assign(socket, message_input: "")}
+
+          {:error, changeset} ->
+            Logger.warning("Failed to create message",
+              trade_id: trade.id,
+              user_id: user.id,
+              errors: inspect(changeset.errors)
+            )
+
+            {:noreply, put_flash(socket, :error, "Failed to send message. Please try again.")}
+        end
+      rescue
+        error ->
+          ErrorTracker.track_liveview_error(error, __STACKTRACE__, socket)
+          friendly_message = ErrorTracker.user_friendly_message(error)
+
+          {:noreply, put_flash(socket, :error, friendly_message)}
       end
     else
       {:noreply, socket}
