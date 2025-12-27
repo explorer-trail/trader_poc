@@ -27,6 +27,22 @@ defmodule TraderPoc.Trading do
   end
 
   @doc """
+  Returns all trades in the system (for admin/dashboard views).
+
+  ## Examples
+
+      iex> list_all_trades()
+      [%Trade{}, ...]
+
+  """
+  def list_all_trades do
+    Trade
+    |> preload([:seller, :buyer])
+    |> order_by([t], desc: t.inserted_at)
+    |> Repo.all()
+  end
+
+  @doc """
   Gets a single trade by invitation code.
 
   Returns `nil` if the Trade does not exist.

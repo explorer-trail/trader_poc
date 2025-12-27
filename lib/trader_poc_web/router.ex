@@ -31,6 +31,7 @@ defmodule TraderPocWeb.Router do
       live "/trades", TradeListLive, :index
       live "/trades/new", TradeFormLive, :new
       live "/room/:invitation_code", TradeRoomLive, :show
+      live "/activity", ActivityDashboardLive, :index
     end
   end
 
