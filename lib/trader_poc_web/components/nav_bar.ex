@@ -29,7 +29,7 @@ defmodule TraderPocWeb.NavBar do
             <div class="hidden md:flex items-center space-x-4">
               <.link
                 navigate={~p"/trades"}
-                class="text-sm text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md hover:bg-gray-100"
+                class="text-sm text-white px-3 py-2 rounded-md hover:bg-gray-100"
               >
                 My Trades
               </.link>

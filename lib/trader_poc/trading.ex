@@ -10,17 +10,17 @@ defmodule TraderPoc.Trading do
   alias TraderPoc.Accounts
 
   @doc """
-  Returns the list of trades for a specific seller.
+  Returns the list of trades for a specific user (either as seller or buyer).
 
   ## Examples
 
-      iex> list_trades(seller_id)
+      iex> list_trades(user_id)
       [%Trade{}, ...]
 
   """
-  def list_trades(seller_id) do
+  def list_trades(user_id) do
     Trade
-    |> where([t], t.seller_id == ^seller_id)
+    |> where([t], t.seller_id == ^user_id or t.buyer_id == ^user_id)
     |> preload([:seller, :buyer])
     |> order_by([t], desc: t.inserted_at)
     |> Repo.all()

@@ -773,7 +773,10 @@ defmodule TraderPocWeb.TradeRoomLive do
   defp action_description(_), do: "performed an action"
 
   defp get_typing_user_name(presences, user_id) do
-    case Map.get(presences, user_id) do
+    # Presence keys are strings, convert user_id to string
+    user_id_key = to_string(user_id)
+
+    case Map.get(presences, user_id_key) do
       %{metas: [meta | _]} -> meta.name
       _ -> "Someone"
     end

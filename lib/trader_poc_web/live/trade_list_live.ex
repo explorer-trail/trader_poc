@@ -9,7 +9,14 @@ defmodule TraderPocWeb.TradeListLive do
     user_id = socket.assigns.current_user.id
     trades = Trading.list_trades(user_id)
 
-    {:ok, assign(socket, trades: trades)}
+    # Add role information to each trade
+    trades_with_role =
+      Enum.map(trades, fn trade ->
+        role = if trade.seller_id == user_id, do: :seller, else: :buyer
+        {trade, role}
+      end)
+
+    {:ok, assign(socket, trades_with_role: trades_with_role)}
   end
 
   @impl true
@@ -25,8 +32,8 @@ defmodule TraderPocWeb.TradeListLive do
     <div class="max-w-6xl mx-auto px-4 py-8">
       <div class="flex justify-between items-center mb-8">
         <div>
-          <h1 class="text-3xl font-bold text-gray-900">My Trades</h1>
-          <p class="text-gray-600 mt-1">Manage your trade negotiations</p>
+          <h1 class="text-3xl font-bold text-gray-100">My Trades</h1>
+          <p class="text-gray-300 mt-1">Manage your trade negotiations</p>
         </div>
         <.link
           navigate={~p"/trades/new"}
@@ -36,9 +43,9 @@ defmodule TraderPocWeb.TradeListLive do
         </.link>
       </div>
 
-      <%= if @trades == [] do %>
+      <%= if @trades_with_role == [] do %>
         <div class="bg-white rounded-lg shadow p-12 text-center">
-          <p class="text-gray-500 text-lg mb-4">You haven't created any trades yet.</p>
+          <p class="text-gray-500 text-lg mb-4">You don't have any trades yet.</p>
           <.link
             navigate={~p"/trades/new"}
             class="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
@@ -48,11 +55,19 @@ defmodule TraderPocWeb.TradeListLive do
         </div>
       <% else %>
         <div class="grid gap-4">
-          <%= for trade <- @trades do %>
+          <%= for {trade, role} <- @trades_with_role do %>
             <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
               <div class="flex justify-between items-start">
                 <div class="flex-1">
-                  <h3 class="text-xl font-semibold text-gray-900 mb-2"><%= trade.title %></h3>
+                  <div class="flex items-center space-x-3 mb-2">
+                    <h3 class="text-xl font-semibold text-gray-900"><%= trade.title %></h3>
+                    <span class={[
+                      "px-2 py-1 rounded text-xs font-semibold",
+                      if(role == :seller, do: "bg-purple-100 text-purple-800", else: "bg-green-100 text-green-800")
+                    ]}>
+                      <%= if role == :seller, do: "SELLER", else: "BUYER" %>
+                    </span>
+                  </div>
                   <p class="text-gray-600 mb-4"><%= trade.description %></p>
 
                   <div class="grid grid-cols-3 gap-4 mb-4">
@@ -65,8 +80,12 @@ defmodule TraderPocWeb.TradeListLive do
                       <p class="text-lg font-semibold text-gray-900"><%= trade.quantity %></p>
                     </div>
                     <div>
-                      <span class="text-sm text-gray-500">Buyer</span>
-                      <p class="text-lg font-semibold text-gray-900"><%= trade.buyer_name %></p>
+                      <span class="text-sm text-gray-500">
+                        <%= if role == :seller, do: "Buyer", else: "Seller" %>
+                      </span>
+                      <p class="text-lg font-semibold text-gray-900">
+                        <%= if role == :seller, do: trade.buyer_name, else: trade.seller.name %>
+                      </p>
                     </div>
                   </div>
 
@@ -78,19 +97,21 @@ defmodule TraderPocWeb.TradeListLive do
                       <%= format_status(trade.status) %>
                     </span>
 
-                    <div class="flex items-center space-x-2">
-                      <code class="bg-gray-100 px-3 py-1 rounded text-sm font-mono text-gray-900">
-                        <%= trade.invitation_code %>
-                      </code>
-                      <button
-                        phx-click="copy_link"
-                        phx-value-code={trade.invitation_code}
-                        onclick={"navigator.clipboard.writeText('#{url(~p"/room/#{trade.invitation_code}")}')"}
-                        class="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                      >
-                        Copy Link
-                      </button>
-                    </div>
+                    <%= if role == :seller do %>
+                      <div class="flex items-center space-x-2">
+                        <code class="bg-gray-100 px-3 py-1 rounded text-sm font-mono text-gray-900">
+                          <%= trade.invitation_code %>
+                        </code>
+                        <button
+                          phx-click="copy_link"
+                          phx-value-code={trade.invitation_code}
+                          onclick={"navigator.clipboard.writeText('#{url(~p"/room/#{trade.invitation_code}")}')"}
+                          class="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                        >
+                          Copy Link
+                        </button>
+                      </div>
+                    <% end %>
                   </div>
                 </div>
 
