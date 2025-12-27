@@ -23,6 +23,7 @@ defmodule TraderPocWeb.Router do
     # Session management
     post "/session", SessionController, :create
     delete "/session", SessionController, :delete
+    delete "/logout", SessionController, :delete
 
     # Authenticated routes
     live_session :require_authenticated_user,

@@ -5,6 +5,7 @@ defmodule TraderPocWeb.TradeRoomLive do
   alias TraderPoc.ErrorTracker
   alias Phoenix.PubSub
   alias TraderPocWeb.Presence
+  import TraderPocWeb.NavBar
 
   require Logger
 
@@ -390,6 +391,8 @@ defmodule TraderPocWeb.TradeRoomLive do
   @impl true
   def render(assigns) do
     ~H"""
+    <.nav_bar current_user={@current_user} />
+
     <div class="max-w-6xl mx-auto px-4 py-8">
       <%= if @trade.status == "accepted" do %>
         <div class="bg-green-50 border-2 border-green-500 rounded-lg p-8 mb-6 text-center">

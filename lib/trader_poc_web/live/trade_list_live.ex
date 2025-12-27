@@ -2,6 +2,7 @@ defmodule TraderPocWeb.TradeListLive do
   use TraderPocWeb, :live_view
 
   alias TraderPoc.Trading
+  import TraderPocWeb.NavBar
 
   @impl true
   def mount(_params, _session, socket) do
@@ -19,6 +20,8 @@ defmodule TraderPocWeb.TradeListLive do
   @impl true
   def render(assigns) do
     ~H"""
+    <.nav_bar current_user={@current_user} />
+
     <div class="max-w-6xl mx-auto px-4 py-8">
       <div class="flex justify-between items-center mb-8">
         <div>

@@ -2,6 +2,7 @@ defmodule TraderPocWeb.TradeFormLive do
   use TraderPocWeb, :live_view
 
   alias TraderPoc.Trading
+  import TraderPocWeb.NavBar
 
   @impl true
   def mount(_params, _session, socket) do
@@ -39,6 +40,8 @@ defmodule TraderPocWeb.TradeFormLive do
   @impl true
   def render(assigns) do
     ~H"""
+    <.nav_bar current_user={@current_user} />
+
     <div class="max-w-2xl mx-auto px-4 py-8">
       <div class="mb-6">
         <.link navigate={~p"/trades"} class="text-blue-600 hover:text-blue-700 flex items-center">
