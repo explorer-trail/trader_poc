@@ -60,6 +60,25 @@ defmodule TraderPocWeb.ActivityDashboardLive do
      )}
   end
 
+  @impl true
+  def handle_info({:typing, _user_id}, socket) do
+    # Ignore typing events - dashboard doesn't need them
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info(:stop_typing, socket) do
+    # Ignore stop typing events - dashboard doesn't need them
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info({:trade_updated, _update_type}, socket) do
+    # Ignore trade update events - we only care about presence
+    # (Could optionally refresh trade data here if needed)
+    {:noreply, socket}
+  end
+
   defp subscribe_to_all_trades do
     # Get all trades and subscribe to their presence topics
     all_trades = Trading.list_all_trades()
