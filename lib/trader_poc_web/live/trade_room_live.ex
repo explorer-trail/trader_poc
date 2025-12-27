@@ -499,7 +499,7 @@ defmodule TraderPocWeb.TradeRoomLive do
       <!-- Action Timeline -->
       <%= if length(@actions) > 0 do %>
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h2 class="text-xl font-semibold mb-4">Activity Timeline</h2>
+          <h2 class="text-xl font-semibold  text-gray-900 mb-4">Activity Timeline</h2>
           <div class="space-y-3 max-h-64 overflow-y-auto">
             <%= for action <- Enum.take(@actions, 10) do %>
               <div class={[
@@ -535,7 +535,7 @@ defmodule TraderPocWeb.TradeRoomLive do
       <div class="grid grid-cols-2 gap-6">
         <!-- Messages -->
         <div class="bg-white rounded-lg shadow-lg p-6">
-          <h2 class="text-xl font-semibold mb-4">Messages</h2>
+          <h2 class="text-xl font-semibold text-gray-900 mb-4">Messages</h2>
           <div class="space-y-3 mb-4 max-h-96 overflow-y-auto">
             <%= for message <- @messages do %>
               <div class={[
@@ -549,13 +549,25 @@ defmodule TraderPocWeb.TradeRoomLive do
                 </p>
               </div>
             <% end %>
-
-            <%= if @typing_user && @typing_user != @current_user.id do %>
-              <div class="p-2 bg-yellow-50 rounded text-sm text-gray-700 italic">
-                <%= get_typing_user_name(@presences, @typing_user) %> is typing...
-              </div>
-            <% end %>
           </div>
+
+          <!-- Typing Indicator (outside scroll area, always visible) -->
+          <%= if @typing_user && @typing_user != @current_user.id do %>
+            <div class="mb-3 p-2 bg-yellow-50 rounded text-sm text-gray-700 italic flex items-center space-x-2">
+              <span class="inline-block">
+                <svg
+                  class="animate-pulse h-4 w-4 text-yellow-600"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <circle cx="4" cy="10" r="2" />
+                  <circle cx="10" cy="10" r="2" />
+                  <circle cx="16" cy="10" r="2" />
+                </svg>
+              </span>
+              <span><%= get_typing_user_name(@presences, @typing_user) %> is typing...</span>
+            </div>
+          <% end %>
 
           <.form for={%{}} phx-submit="send_message" class="flex space-x-2">
             <input
@@ -579,7 +591,7 @@ defmodule TraderPocWeb.TradeRoomLive do
 
         <!-- Version History -->
         <div class="bg-white rounded-lg shadow-lg p-6">
-          <h2 class="text-xl font-semibold mb-4">Version History</h2>
+          <h2 class="text-xl font-semibold text-gray-900 mb-4">Version History</h2>
           <div class="space-y-3 max-h-96 overflow-y-auto">
             <%= for version <- @versions do %>
               <div class="border-l-4 border-blue-500 pl-4 py-2">
