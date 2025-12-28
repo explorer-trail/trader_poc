@@ -3,7 +3,6 @@ defmodule TraderPocWeb.ActivityDashboardLive do
 
   alias TraderPoc.Trading
   alias TraderPocWeb.Presence
-  alias Phoenix.PubSub
   import TraderPocWeb.NavBar
 
   require Logger

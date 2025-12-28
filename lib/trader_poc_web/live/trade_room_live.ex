@@ -614,7 +614,7 @@ defmodule TraderPocWeb.TradeRoomLive do
       <%= if @show_amend_modal do %>
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
-            <h2 class="text-2xl font-bold mb-4">Amend Deal</h2>
+            <h2 class="text-2xl font-bold mb-4 text-gray-900">Amend Deal</h2>
             <.form for={%{}} phx-submit="amend_trade" class="space-y-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Price ($)</label>
@@ -677,11 +677,11 @@ defmodule TraderPocWeb.TradeRoomLive do
       <%= if @show_accept_modal do %>
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
-            <h2 class="text-2xl font-bold mb-4">Accept Deal</h2>
+            <h2 class="text-2xl font-bold mb-4 text-gray-900">Accept Deal</h2>
             <p class="text-gray-700 mb-6">
               Are you sure you want to accept this deal?
             </p>
-            <div class="bg-gray-50 p-4 rounded-md mb-6">
+            <div class="bg-gray-200 p-4 rounded-md mb-6 text-gray-700">
               <p class="font-semibold">Final Terms:</p>
               <p>Price: $<%= @trade.current_price %></p>
               <p>Quantity: <%= @trade.quantity %></p>
@@ -689,7 +689,7 @@ defmodule TraderPocWeb.TradeRoomLive do
             <div class="flex justify-end space-x-3">
               <button
                 phx-click="hide_accept_modal"
-                class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700"
               >
                 Cancel
               </button>
@@ -707,7 +707,7 @@ defmodule TraderPocWeb.TradeRoomLive do
       <%= if @show_amendment_request_modal do %>
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
-            <h2 class="text-2xl font-bold mb-4">Request Amendment</h2>
+            <h2 class="text-2xl font-bold mb-4 text-gray-900">Request Amendment</h2>
             <.form for={%{}} phx-submit="request_amendment" class="space-y-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -725,7 +725,7 @@ defmodule TraderPocWeb.TradeRoomLive do
                 <button
                   type="button"
                   phx-click="hide_amendment_request_modal"
-                  class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                  class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-gray-600"
                 >
                   Cancel
                 </button>

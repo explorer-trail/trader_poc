@@ -1,16 +1,9 @@
 defmodule TraderPocWeb.HomeLive do
   use TraderPocWeb, :live_view
 
-  alias TraderPoc.Accounts
-
   @impl true
-  def mount(_params, session, socket) do
-    # Check if user is already logged in
-    if session["user_id"] do
-      {:ok, socket, layout: false}
-    else
-      {:ok, assign(socket, name: "", errors: []), layout: false}
-    end
+  def mount(_params, _session, socket) do
+    {:ok, assign(socket, name: "", errors: []), layout: false}
   end
 
   @impl true
@@ -43,7 +36,7 @@ defmodule TraderPocWeb.HomeLive do
             type="submit"
             class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
           >
-            Get Started
+            Login
           </button>
         </form>
 
