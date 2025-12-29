@@ -380,6 +380,15 @@ defmodule TraderPocWeb.TradeRoomLive do
     {:noreply, assign(socket, typing_user: nil)}
   end
 
+  @impl true
+  def handle_info({:trade_expired, updated_trade}, socket) do
+    # Trade has expired
+    {:noreply,
+     socket
+     |> assign(trade: updated_trade)
+     |> put_flash(:error, "This trade has expired")}
+  end
+
   defp broadcast_update(trade_id, update_type) do
     PubSub.broadcast(TraderPoc.PubSub, "trade:#{trade_id}", {:trade_updated, update_type})
   end
@@ -405,6 +414,14 @@ defmodule TraderPocWeb.TradeRoomLive do
         </div>
       <% end %>
 
+      <%= if @trade.status == "expired" do %>
+        <div class="bg-orange-50 border-2 border-orange-500 rounded-lg p-8 mb-6 text-center">
+          <div class="text-6xl mb-4">⏱️</div>
+          <h2 class="text-3xl font-bold text-orange-900 mb-2">Trade Expired</h2>
+          <p class="text-lg text-orange-700">This trade offer has expired and is no longer available.</p>
+        </div>
+      <% end %>
+
       <div class="mb-6">
         <.link navigate={~p"/trades"} class="text-blue-600 hover:text-blue-700 flex items-center">
           <span class="mr-2">←</span> Back to Trades
@@ -415,12 +432,24 @@ defmodule TraderPocWeb.TradeRoomLive do
         <div class="flex justify-between items-start mb-4">
           <div>
             <h1 class="text-3xl font-bold text-gray-900 mb-2"><%= @trade.title %></h1>
-            <span class={[
-              "px-3 py-1 rounded-full text-sm font-medium",
-              status_class(@trade.status)
-            ]}>
-              <%= format_status(@trade.status) %>
-            </span>
+            <div class="flex items-center space-x-3">
+              <span class={[
+                "px-3 py-1 rounded-full text-sm font-medium",
+                status_class(@trade.status)
+              ]}>
+                <%= format_status(@trade.status) %>
+              </span>
+              <%= if @trade.status not in ["accepted", "rejected", "expired"] && @trade.expires_at do %>
+                <div
+                  id="countdown-timer"
+                  phx-hook="CountdownTimer"
+                  data-expires-at={DateTime.to_iso8601(@trade.expires_at)}
+                  class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium"
+                >
+                  <span id="countdown-display">Calculating...</span>
+                </div>
+              <% end %>
+            </div>
           </div>
           <div class="text-right">
             <p class="text-sm text-gray-500 mb-2">
@@ -457,7 +486,7 @@ defmodule TraderPocWeb.TradeRoomLive do
           </div>
         </div>
 
-        <%= if @trade.status != "accepted" and @trade.status != "rejected" do %>
+        <%= if @trade.status not in ["accepted", "rejected", "expired"] do %>
           <div class="border-t pt-4 mt-4">
             <h2 class="text-xl font-semibold mb-4">Actions</h2>
             <div class="flex space-x-3">
@@ -658,7 +687,7 @@ defmodule TraderPocWeb.TradeRoomLive do
                 <button
                   type="button"
                   phx-click="hide_amend_modal"
-                  class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                  class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-gray-600"
                 >
                   Cancel
                 </button>
@@ -748,11 +777,13 @@ defmodule TraderPocWeb.TradeRoomLive do
   defp status_class("in_negotiation"), do: "bg-blue-100 text-blue-800"
   defp status_class("accepted"), do: "bg-green-100 text-green-800"
   defp status_class("rejected"), do: "bg-red-100 text-red-800"
+  defp status_class("expired"), do: "bg-orange-100 text-orange-800"
 
   defp format_status("draft"), do: "Draft"
   defp format_status("in_negotiation"), do: "In Negotiation"
   defp format_status("accepted"), do: "Accepted"
   defp format_status("rejected"), do: "Rejected"
+  defp format_status("expired"), do: "Expired"
 
   defp action_border_color("created"), do: "border-gray-400"
   defp action_border_color("joined"), do: "border-blue-400"

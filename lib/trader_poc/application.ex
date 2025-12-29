@@ -10,6 +10,7 @@ defmodule TraderPoc.Application do
     children = [
       TraderPocWeb.Telemetry,
       TraderPoc.Repo,
+      {Oban, Application.fetch_env!(:trader_poc, Oban)},
       {DNSCluster, query: Application.get_env(:trader_poc, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: TraderPoc.PubSub},
       TraderPocWeb.Presence,

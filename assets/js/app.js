@@ -25,11 +25,62 @@ import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/trader_poc"
 import topbar from "../vendor/topbar"
 
+// Custom hooks
+const Hooks = {
+  CountdownTimer: {
+    mounted() {
+      this.expiresAt = new Date(this.el.dataset.expiresAt)
+      this.updateCountdown()
+      this.interval = setInterval(() => this.updateCountdown(), 1000)
+    },
+    destroyed() {
+      if (this.interval) {
+        clearInterval(this.interval)
+      }
+    },
+    updateCountdown() {
+      const now = new Date()
+      const diff = this.expiresAt - now
+
+      if (diff <= 0) {
+        this.el.querySelector('#countdown-display').textContent = 'Expired'
+        this.el.classList.remove('bg-yellow-100', 'text-yellow-800')
+        this.el.classList.add('bg-red-100', 'text-red-800')
+        if (this.interval) {
+          clearInterval(this.interval)
+        }
+        return
+      }
+
+      const hours = Math.floor(diff / (1000 * 60 * 60))
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+
+      let displayText = ''
+      if (hours > 0) {
+        displayText = `${hours}h ${minutes}m ${seconds}s remaining`
+      } else if (minutes > 0) {
+        displayText = `${minutes}m ${seconds}s remaining`
+      } else {
+        displayText = `${seconds}s remaining`
+      }
+
+      this.el.querySelector('#countdown-display').textContent = displayText
+
+      // Change color when less than 5 minutes remaining
+      if (diff < 5 * 60 * 1000) {
+        this.el.classList.remove('bg-yellow-100', 'text-yellow-800')
+        this.el.classList.add('bg-red-100', 'text-red-800')
+      }
+    }
+  }
+}
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks},
+  hooks: {...Hooks, ...colocatedHooks},
 })
 
 // Show progress bar on live navigation and form submits

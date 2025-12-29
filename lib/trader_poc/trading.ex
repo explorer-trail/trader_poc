@@ -97,6 +97,10 @@ defmodule TraderPoc.Trading do
     # Get price from attrs
     price = attrs["price"] || attrs[:price]
 
+    # Calculate expiration time (30 minutes from now, configurable via env or attrs)
+    expiry_minutes = attrs["expiry_minutes"] || attrs[:expiry_minutes] || 30
+    expires_at = DateTime.utc_now() |> DateTime.add(expiry_minutes * 60, :second)
+
     # Prepare trade attributes with string keys
     trade_attrs = %{
       "title" => attrs["title"] || attrs[:title],
@@ -107,15 +111,17 @@ defmodule TraderPoc.Trading do
       "buyer_id" => buyer.id,
       "invitation_code" => invitation_code,
       "initial_price" => price,
-      "current_price" => price
+      "current_price" => price,
+      "expires_at" => expires_at
     }
 
     # Create trade in a transaction
     Repo.transaction(fn ->
       with {:ok, trade} <- do_create_trade(trade_attrs),
            {:ok, _version} <- create_initial_version(trade, seller_id),
-           {:ok, _action} <- log_action(trade, seller_id, "created", %{initial_price: trade.initial_price}) do
-        trade
+           {:ok, _action} <- log_action(trade, seller_id, "created", %{initial_price: trade.initial_price}),
+           {:ok, updated_trade} <- schedule_expiry_job(trade) do
+        updated_trade
       else
         {:error, changeset} -> Repo.rollback(changeset)
       end
@@ -233,7 +239,8 @@ defmodule TraderPoc.Trading do
   """
   def accept_trade(%Trade{} = trade, user_id) do
     Repo.transaction(fn ->
-      with {:ok, updated_trade} <- update_trade(trade, %{status: "accepted"}),
+      with :ok <- cancel_expiry_job(trade),
+           {:ok, updated_trade} <- update_trade(trade, %{status: "accepted"}),
            {:ok, _action} <- log_action(updated_trade, user_id, "accepted", %{final_price: updated_trade.current_price}) do
         updated_trade
       else
@@ -253,7 +260,8 @@ defmodule TraderPoc.Trading do
   """
   def reject_trade(%Trade{} = trade, user_id) do
     Repo.transaction(fn ->
-      with {:ok, updated_trade} <- update_trade(trade, %{status: "rejected"}),
+      with :ok <- cancel_expiry_job(trade),
+           {:ok, updated_trade} <- update_trade(trade, %{status: "rejected"}),
            {:ok, _action} <- log_action(updated_trade, user_id, "rejected", %{}) do
         updated_trade
       else
@@ -390,6 +398,36 @@ defmodule TraderPoc.Trading do
     |> preload(:user)
     |> order_by([m], asc: m.inserted_at)
     |> Repo.all()
+  end
+
+  # Schedule expiry job for a trade
+  defp schedule_expiry_job(%Trade{} = trade) do
+    # Calculate seconds until expiry
+    now = DateTime.utc_now()
+    seconds_until_expiry = DateTime.diff(trade.expires_at, now, :second)
+
+    # Schedule the job
+    %{trade_id: trade.id}
+    |> TraderPoc.Workers.ExpireTradeWorker.new(schedule_in: seconds_until_expiry)
+    |> Oban.insert()
+    |> case do
+      {:ok, %{id: job_id}} ->
+        # Update trade with the Oban job ID
+        update_trade(trade, %{oban_job_id: job_id})
+
+      {:error, _changeset} = error ->
+        error
+    end
+  end
+
+  # Cancel expiry job for a trade
+  defp cancel_expiry_job(%Trade{oban_job_id: nil}), do: :ok
+
+  defp cancel_expiry_job(%Trade{oban_job_id: job_id}) do
+    case Oban.cancel_job(job_id) do
+      {:ok, _job} -> :ok
+      {:error, _reason} -> :ok  # Job might already be completed or cancelled
+    end
   end
 
   # Generate a unique invitation code

@@ -11,6 +11,8 @@ defmodule TraderPoc.Trading.Trade do
     field :status, :string, default: "draft"
     field :buyer_name, :string
     field :invitation_code, :string
+    field :expires_at, :utc_datetime
+    field :oban_job_id, :integer
 
     belongs_to :seller, TraderPoc.Accounts.User
     belongs_to :buyer, TraderPoc.Accounts.User
@@ -25,12 +27,12 @@ defmodule TraderPoc.Trading.Trade do
   @doc false
   def changeset(trade, attrs) do
     trade
-    |> cast(attrs, [:title, :description, :initial_price, :current_price, :quantity, :status, :buyer_name, :invitation_code, :seller_id, :buyer_id])
+    |> cast(attrs, [:title, :description, :initial_price, :current_price, :quantity, :status, :buyer_name, :invitation_code, :seller_id, :buyer_id, :expires_at, :oban_job_id])
     |> validate_required([:title, :initial_price, :current_price, :quantity, :buyer_name, :seller_id, :buyer_id])
     |> validate_number(:initial_price, greater_than: 0)
     |> validate_number(:current_price, greater_than: 0)
     |> validate_number(:quantity, greater_than: 0)
-    |> validate_inclusion(:status, ["draft", "in_negotiation", "accepted", "rejected"])
+    |> validate_inclusion(:status, ["draft", "in_negotiation", "accepted", "rejected", "expired"])
     |> unique_constraint(:invitation_code)
   end
 end

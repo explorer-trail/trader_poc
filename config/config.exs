@@ -11,6 +11,12 @@ config :trader_poc,
   ecto_repos: [TraderPoc.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+# Configure Oban
+config :trader_poc, Oban,
+  repo: TraderPoc.Repo,
+  plugins: [Oban.Plugins.Pruner],
+  queues: [default: 10]
+
 # Configures the endpoint
 config :trader_poc, TraderPocWeb.Endpoint,
   url: [host: "localhost"],

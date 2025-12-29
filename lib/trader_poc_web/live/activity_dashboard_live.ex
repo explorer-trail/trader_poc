@@ -259,9 +259,11 @@ defmodule TraderPocWeb.ActivityDashboardLive do
   defp status_class("in_negotiation"), do: "bg-blue-100 text-blue-800"
   defp status_class("accepted"), do: "bg-green-100 text-green-800"
   defp status_class("rejected"), do: "bg-red-100 text-red-800"
+  defp status_class("expired"), do: "bg-orange-100 text-orange-800"
 
   defp format_status("draft"), do: "Draft"
   defp format_status("in_negotiation"), do: "In Negotiation"
   defp format_status("accepted"), do: "Accepted"
   defp format_status("rejected"), do: "Rejected"
+  defp format_status("expired"), do: "Expired"
 end
